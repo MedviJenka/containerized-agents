@@ -1,2 +1,4 @@
 .env
 graphify-out
+__pycache__
+.idea
