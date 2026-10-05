@@ -45,13 +45,13 @@ class LoggerTests(unittest.TestCase):
             for level in ("info", "error", "debug", "warning", "fatal"):
                 with self.subTest(level=level):
                     client.reset_mock()
-                    logger.log("hello", level, job_id="job-123")
+                    logger.fire("hello", level, job_id="job-123")
                     getattr(client, level).assert_called_once_with(
                         "hello", job_id="job-123"
                     )
 
             client.reset_mock()
-            logger.log("fallback", "unknown")
+            logger.fire("fallback", "unknown")
             client.info.assert_called_once_with("fallback")
 
     def test_script_configures_logfire_when_run_directly(self) -> None:

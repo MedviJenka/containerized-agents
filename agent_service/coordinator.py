@@ -33,33 +33,33 @@ class PipelineCoordinator:
         job_directory = self._shared / "jobs" / str(request.job_id)
         job_directory.mkdir(parents=True, exist_ok=False)
         self._write_status(job_directory, "queued")
-        self._logger.log("Job queued", job_id=str(request.job_id))
+        self._logger.fire("Job queued", job_id=str(request.job_id))
 
     def run(self, request: RunRequest) -> None:
         job_directory = self._shared / "jobs" / str(request.job_id)
         job_directory.mkdir(parents=True, exist_ok=True)
         context = {"job_id": str(request.job_id)}
-        self._logger.log("Pipeline started", **context)
+        self._logger.fire("Pipeline started", **context)
         try:
             self._write_status(job_directory, "team_1_running")
-            self._logger.log("Team 1 started", **context)
+            self._logger.fire("Team 1 started", **context)
             first = self._team_1.run(request)
-            self._logger.log("Team 1 completed", **context)
+            self._logger.fire("Team 1 completed", **context)
             self._write_status(
                 job_directory,
                 "team_2_running",
                 team_1_summary=first.summary,
             )
-            self._logger.log("Team 2 started", **context)
+            self._logger.fire("Team 2 started", **context)
             second = self._team_2.run(request)
-            self._logger.log("Team 2 completed", **context)
+            self._logger.fire("Team 2 completed", **context)
             self._write_status(
                 job_directory,
                 "applying",
                 team_1_summary=first.summary,
                 team_2_summary=second.summary,
             )
-            self._logger.log("Applying reviewed patch", **context)
+            self._logger.fire("Applying reviewed patch", **context)
             apply_patch(self._project, second.patch_path.read_bytes())
             self._write_status(
                 job_directory,
@@ -68,9 +68,9 @@ class PipelineCoordinator:
                 team_2_summary=second.summary,
                 final_patch=str(second.patch_path),
             )
-            self._logger.log("Pipeline completed", **context)
+            self._logger.fire("Pipeline completed", **context)
         except Exception as error:
-            self._logger.log(
+            self._logger.fire(
                 "Pipeline failed",
                 "error",
                 **context,
