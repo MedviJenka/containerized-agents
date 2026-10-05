@@ -1,13 +1,9 @@
-from __future__ import annotations
 import json
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING, Protocol
+from typing import Protocol
 from agent_service.worker import RunRequest, RunResult
 from agent_service.workspace import apply_patch
-
-if TYPE_CHECKING:
-    from functions.log import Logger
 
 
 class WorkerClient(Protocol):
@@ -15,14 +11,7 @@ class WorkerClient(Protocol):
 
 
 class PipelineCoordinator:
-    def __init__(
-        self,
-        project: Path,
-        shared: Path,
-        team_1: WorkerClient,
-        team_2: WorkerClient,
-        logger: Logger,
-    ) -> None:
+    def __init__(self, project: Path, shared: Path, team_1: WorkerClient, team_2: WorkerClient, logger: Logger) -> None:
         self._project = project
         self._shared = shared
         self._team_1 = team_1
@@ -36,20 +25,18 @@ class PipelineCoordinator:
         self._logger.fire("Job queued", job_id=str(request.job_id))
 
     def run(self, request: RunRequest) -> None:
+
         job_directory = self._shared / "jobs" / str(request.job_id)
         job_directory.mkdir(parents=True, exist_ok=True)
         context = {"job_id": str(request.job_id)}
         self._logger.fire("Pipeline started", **context)
+
         try:
             self._write_status(job_directory, "team_1_running")
             self._logger.fire("Team 1 started", **context)
             first = self._team_1.run(request)
             self._logger.fire("Team 1 completed", **context)
-            self._write_status(
-                job_directory,
-                "team_2_running",
-                team_1_summary=first.summary,
-            )
+            self._write_status(job_directory, "team_2_running", team_1_summary=first.summary)
             self._logger.fire("Team 2 started", **context)
             second = self._team_2.run(request)
             self._logger.fire("Team 2 completed", **context)

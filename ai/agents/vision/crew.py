@@ -22,7 +22,7 @@ class Vision(AgentConfig):
 
     @crew
     def crew(self) -> Crew:
-        return Crew(agents=self.agents, tasks=self.tasks, process=Process.sequential, verbose=True)
+        return Crew(agents=self.agents, tasks=self.tasks, verbose=True)
 
 
 def run_vision_agent(image: list[str], prompt: str) -> VisionSchema:

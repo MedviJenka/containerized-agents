@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import asyncio
 import json
 import os
@@ -8,10 +6,8 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
 from uuid import UUID, uuid4
-
 from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel, Field
-
 from agent_service.coordinator import PipelineCoordinator
 from agent_service.worker import RunRequest, RunResult
 from functions.log import Logger
@@ -23,7 +19,7 @@ class JobRequest(BaseModel):
 
 class JobAccepted(BaseModel):
     job_id: UUID
-    state: str
+    state:  str
 
 
 class HttpWorkerClient:
@@ -34,9 +30,7 @@ class HttpWorkerClient:
         self._timeout = timeout
 
     def run(self, request: RunRequest) -> RunResult:
-        body = json.dumps(
-            {"job_id": str(request.job_id), "prompt": request.prompt}
-        ).encode("utf-8")
+        body = json.dumps({"job_id": str(request.job_id), "prompt": request.prompt}).encode("utf-8")
         http_request = urllib.request.Request(
             self._url,
             data=body,
@@ -61,7 +55,7 @@ class HttpWorkerClient:
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     project = Path(os.environ.get("PROJECT_DIRECTORY", "/project"))
     shared = Path(os.environ.get("SHARED_DIRECTORY", "/shared"))
     timeout = float(os.environ.get("OMP_TASK_TIMEOUT_SECONDS", "1800")) + 30
@@ -84,8 +78,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     )
     app.state.pipeline_lock = asyncio.Lock()
     app.state.tasks = set()
+
     try:
         yield
+
     finally:
         tasks = tuple(app.state.tasks)
         if tasks:
