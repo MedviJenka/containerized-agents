@@ -54,13 +54,13 @@ class AgentWorker:
     def run(self, request: RunRequest) -> RunResult:
         settings = self._settings
         context = {"job_id": str(request.job_id), "stage": settings.stage}
-        self._logger.log("Worker run started", **context)
+        self._logger.fire("Worker run started", **context)
         try:
             if not request.prompt.strip():
                 raise ValueError("prompt must not be empty")
 
             prepare_workspace(settings.project, settings.workspace)
-            self._logger.log("Workspace prepared", **context)
+            self._logger.fire("Workspace prepared", **context)
             job_directory = settings.shared / "jobs" / str(request.job_id)
             job_directory.mkdir(parents=True, exist_ok=True)
 
@@ -71,25 +71,25 @@ class AgentWorker:
                         f"First-stage patch is missing: {first_patch}"
                     )
                 apply_patch(settings.workspace, first_patch.read_bytes())
-                self._logger.log(
+                self._logger.fire(
                     "First-stage patch applied",
                     **context,
                     patch_path=str(first_patch),
                 )
 
-            self._logger.log("Agent run started", **context)
+            self._logger.fire("Agent run started", **context)
             summary = self._rpc.run(self._prompt(request.prompt))
-            self._logger.log("Agent run completed", **context)
+            self._logger.fire("Agent run completed", **context)
             patch_path = job_directory / f"{settings.stage}.patch"
             self._atomic_write(patch_path, create_patch(settings.workspace))
-            self._logger.log(
+            self._logger.fire(
                 "Patch created",
                 **context,
                 patch_path=str(patch_path),
             )
             return RunResult(request.job_id, settings.stage, summary, patch_path)
         except Exception as error:
-            self._logger.log(
+            self._logger.fire(
                 "Worker run failed",
                 "error",
                 **context,

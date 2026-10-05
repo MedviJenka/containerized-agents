@@ -1,13 +1,6 @@
-import sys
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Literal
-
 import logfire
-
-if __package__ in {None, ""}:
-    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-
 from settings import Config
 
 LogLevel = Literal["info", "error", "debug", "warning", "fatal"]
@@ -21,12 +14,7 @@ class Logger:
     def __post_init__(self) -> None:
         self.config = logfire.configure(token=Config.LOGFIRE_WRITE_TOKEN)
 
-    def log(
-        self,
-        message: str,
-        level: LogLevel | None = None,
-        **attributes: object,
-    ) -> None:
+    def fire(self, message: str, level: LogLevel | None = 'info', **attributes: object) -> None:
         with self.config.span(self.name):
             match level:
                 case "info":
@@ -45,4 +33,4 @@ class Logger:
 
 if __name__ == "__main__":
     logger = Logger(name="app")
-    logger.log(message="hi")
+    logger.fire(message="hi")

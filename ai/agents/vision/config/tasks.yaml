@@ -1,0 +1,15 @@
+vision_task:
+  description: >
+    Analyze every image {image} attached to this crew run with prompt: {prompt}. 
+    Identify visible objects,
+    prominent colors, names or named entities, and dates. Report only evidence
+    supported by the image. Preserve visible spelling and date formatting,
+    omit duplicates, and use an empty list when a category has no findings.
+    Assign an overall confidence percentage that reflects image quality and
+    ambiguity.
+  expected_output: >
+    A VisionSchema-compatible object containing confidence_level (0 through
+    100), items_found (strings), colors (objects with name and an optional
+    six-digit RGB hex_code), names (strings), and dates (strings). Do not
+    include prose or fields outside the schema.
+  agent: vision
